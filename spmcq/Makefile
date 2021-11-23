@@ -6,6 +6,14 @@ CFLAGS = -Werror -O2
 INCS = -Iqueue/include
 LIBS = -lpthread queue/libqueue.a
 
+ifeq ($(TEST), y)
+	CFLAGS += -DTEST
+endif
+
+ifeq ($(DEBUG), )
+	CFLAGS += -DNDEBUG
+endif
+
 SRCS = $(wildcard *.c)
 OBJS = $(patsubst %.c, %.o, $(SRCS))
 TARGET = spmcq

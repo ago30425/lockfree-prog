@@ -1,6 +1,8 @@
 SRCS = $(wildcard *.c)
 OBJS = $(patsubst %.c, %.o, $(SRCS))
 
+INCS = -Iinclude
+
 TARGET = libqueue.a
 
 .PHONY: all clean
@@ -11,7 +13,7 @@ $(TARGET): $(OBJS)
 	$(AR) rcs $(TARGET) $^
 
 %.o: %.c
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) $(INCS) -c $< -o $@
 
 clean:
 	rm -f $(TARGET) $(OBJS)
