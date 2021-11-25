@@ -24,7 +24,7 @@ CLEANSUBDIRS = $(SUBDIRS:%=clean-%)
 
 export CC AR CFLAGS
 
-.PHONY: all clean $(BUILDSUBDIRS) $(CLEANSUBDIRS)
+.PHONY: all clean $(BUILDSUBDIRS) $(CLEANSUBDIRS) format
 
 all: $(BUILDSUBDIRS) $(TARGET)
 
@@ -43,4 +43,6 @@ clean: $(CLEANSUBDIRS)
 $(CLEANSUBDIRS):
 	$(MAKE) -C $(@:clean-%=%) clean
 
-
+# TODO: Use automatically when pre-commmit
+format:
+	astyle --style=linux --recursive -n "*.c" "*.h"

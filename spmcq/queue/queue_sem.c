@@ -39,51 +39,51 @@ static int qsem_init(queue_t *q)
     lock = (qsem_lock_t *)calloc(1, sizeof(qsem_lock_t));
     if (!lock) {
         ret = SPMCQ_NO_MEM;
-		goto err;
-	}
+        goto err;
+    }
 
     lock->m = (pthread_mutex_t *)malloc(sizeof(pthread_mutex_t));
     if (!lock->m) {
         ret = SPMCQ_NO_MEM;
-		goto err;
-	}
+        goto err;
+    }
 
     lock->snodes = (sem_t *)malloc(sizeof(sem_t));
     if (!lock->snodes) {
         ret = SPMCQ_NO_MEM;
-		goto err;
-	}
+        goto err;
+    }
 
     lock->sspace = (sem_t *)malloc(sizeof(sem_t));
     if (!lock->sspace) {
         ret = SPMCQ_NO_MEM;
-		goto err;
-	}
+        goto err;
+    }
 
     if (pthread_mutex_init(lock->m, NULL) == 0) {
         lock_succ |= 0x01;
     } else {
         ret = SPMCQ_MUTEX_ERR;
-		goto err;
-	}
+        goto err;
+    }
 
     if (sem_init(lock->snodes, 0, 0) == 0) {
         lock_succ |= 0x02;
     } else {
         ret = SPMCQ_SEMAPHORE_ERR;
-		goto err;
-	}
+        goto err;
+    }
 
     if (sem_init(lock->sspace, 0, q->max_size) == 0) {
         lock_succ |= 0x04;
     } else {
         ret = SPMCQ_SEMAPHORE_ERR;
-		goto err;
-	}
+        goto err;
+    }
 
     q->lock = lock;
 
-	return SPMCQ_SUCCESS;
+    return SPMCQ_SUCCESS;
 
 err:
     if (lock_succ & 0x01) pthread_mutex_destroy(lock->m);
@@ -107,29 +107,29 @@ static int qsem_destroy(queue_t *q)
     qsem_lock_t *lock = NULL;
 
     if (!q) {
-		goto err;
-	}
+        goto err;
+    }
 
     lock = (qsem_lock_t *)q->lock;
     if (!lock) {
-		goto err;
-	}
+        goto err;
+    }
 
     if (lock->m && pthread_mutex_destroy(lock->m) != 0)
-		ret = SPMCQ_MUTEX_ERR;
+        ret = SPMCQ_MUTEX_ERR;
 
     if (lock->snodes && sem_destroy(lock->snodes) == -1)
-		ret = SPMCQ_SEMAPHORE_ERR;
+        ret = SPMCQ_SEMAPHORE_ERR;
 
     if (lock->sspace && sem_destroy(lock->sspace) == -1)
-		ret = SPMCQ_SEMAPHORE_ERR;
+        ret = SPMCQ_SEMAPHORE_ERR;
 
 err:
     if (lock) {
-	    if (lock->m)      free(lock->m);
-	    if (lock->snodes) free(lock->snodes);
-	    if (lock->sspace) free(lock->sspace);
-	    if (lock)         free(lock);
+        if (lock->m)      free(lock->m);
+        if (lock->snodes) free(lock->snodes);
+        if (lock->sspace) free(lock->sspace);
+        if (lock)         free(lock);
     }
 
     return ret;
@@ -155,33 +155,33 @@ static int qsem_enqueue(queue_t *q, int val)
     node = (q_node_t *)malloc(sizeof(*node));
     if (!node) {
         ret = SPMCQ_NO_MEM;
-		goto err;
+        goto err;
     }
 
     node->val = val;
 
     if (sem_wait(lock->sspace) != 0) {
-		ret = SPMCQ_SEMAPHORE_ERR;
-		goto err;
-	}
+        ret = SPMCQ_SEMAPHORE_ERR;
+        goto err;
+    }
 
-	if (pthread_mutex_lock(lock->m) != 0) {
-		ret = SPMCQ_MUTEX_ERR;
-		goto err;
-	}
+    if (pthread_mutex_lock(lock->m) != 0) {
+        ret = SPMCQ_MUTEX_ERR;
+        goto err;
+    }
 
     q->ring_buf[(q->front++) & (q->max_size - 1)] = node;
     q->num++;
 
     if (pthread_mutex_unlock(lock->m) != 0) {
-		ret = SPMCQ_MUTEX_ERR;
-		goto err;
-	}
+        ret = SPMCQ_MUTEX_ERR;
+        goto err;
+    }
 
-	if (sem_post(lock->snodes) != 0) {
-		ret = SPMCQ_SEMAPHORE_ERR;
-		goto err;
-	}
+    if (sem_post(lock->snodes) != 0) {
+        ret = SPMCQ_SEMAPHORE_ERR;
+        goto err;
+    }
 
     return SPMCQ_SUCCESS;
 err:
@@ -197,7 +197,7 @@ static int qsem_dequeue(queue_t *q, int *val)
 {
     q_node_t *tmp_node = NULL;
     qsem_lock_t *lock;
-	int ret = SPMCQ_SUCCESS;
+    int ret = SPMCQ_SUCCESS;
 
     if (!q) {
         ret = SPMCQ_INVALID_PARAM;
@@ -208,29 +208,29 @@ static int qsem_dequeue(queue_t *q, int *val)
     lock = q->lock;
 
     if (sem_wait(lock->snodes) == -1) {
-		ret = SPMCQ_SEMAPHORE_ERR;
-		goto err;
-	}
+        ret = SPMCQ_SEMAPHORE_ERR;
+        goto err;
+    }
 
-	if (pthread_mutex_lock(lock->m) != 0) {
-		ret = SPMCQ_MUTEX_ERR;
-		goto err;
-	}
+    if (pthread_mutex_lock(lock->m) != 0) {
+        ret = SPMCQ_MUTEX_ERR;
+        goto err;
+    }
 
     tmp_node = q->ring_buf[(q->rear++) & (q->max_size - 1)];
     q->num--;
 
     if (pthread_mutex_unlock(lock->m) != 0) {
-		ret = SPMCQ_MUTEX_ERR;
-		goto err;
-	}
+        ret = SPMCQ_MUTEX_ERR;
+        goto err;
+    }
 
-	if (sem_post(lock->sspace) == -1) {
-		ret = SPMCQ_SEMAPHORE_ERR;
-		goto err;
-	}
+    if (sem_post(lock->sspace) == -1) {
+        ret = SPMCQ_SEMAPHORE_ERR;
+        goto err;
+    }
 
-	if (val)
+    if (val)
         *val = tmp_node->val;
 
 #ifdef TEST

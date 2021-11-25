@@ -17,7 +17,7 @@ typedef struct queue {
     /* TODO: Make portable type */
     uint32_t front;
     uint32_t rear;
-	struct q_method *method;
+    struct q_method *method;
     /* Max size of the queue */
     int  max_size;
     /* Current number of nodes in queue */

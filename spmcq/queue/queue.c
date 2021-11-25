@@ -17,14 +17,14 @@ queue_t* spmcq_create(int max_size, QMETHOD method_id)
 
     if (max_size <= 0)
         return NULL;
-    
+
     switch (method_id) {
-        case QMETHOD_SEM:
-            m = &queue_sem_method;
-            break;
-        default:
-            m = &queue_sem_method;
-            break;
+    case QMETHOD_SEM:
+        m = &queue_sem_method;
+        break;
+    default:
+        m = &queue_sem_method;
+        break;
     }
 
     q = (queue_t *)calloc(1, sizeof(*q));
@@ -103,8 +103,8 @@ int spmcq_dequeue(queue_t *spmcq, int *val)
 void spmcq_test(queue_t *spmcq)
 {
     if (!spmcq) {
-         fprintf(stderr, "[Failed] spmcq is NULL\n");
-         return;
+        fprintf(stderr, "[Failed] spmcq is NULL\n");
+        return;
     }
 
     printf("SPMC test...\n");
