@@ -2,7 +2,10 @@
 #define __QUEUE_H__
 #include <limits.h>
 
-#define MAX_QUEUE_SIZE    (INT_MAX - 1)
+#define MIN_QUEUE_SIZE    1
+#define MAX_QUEUE_SIZE    (1 << 21)  // 2MB
+
+#define IS_POWER_OF_2(x) (((~(x)) & (x)) == 0)
 
 enum SPMCQ_ERR {
     SPMCQ_SUCCESS = 0,

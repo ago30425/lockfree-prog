@@ -29,11 +29,14 @@ static int qsem_init(queue_t *q)
 {
     qsem_lock_t *lock;
     int ret;
-    uint8_t lock_succ = 0;  /* TODO: Make portable type */
+    uint8_t lock_succ = 0;
 
     if (!q) {
-        ret = SPMCQ_INVALID_PARAM;
-        goto err;
+        return SPMCQ_INVALID_PARAM;
+    }
+
+    if (!IS_POWER_OF_2(q->max_size)) {
+        return SPMCQ_INVALID_PARAM;
     }
 
     lock = (qsem_lock_t *)calloc(1, sizeof(qsem_lock_t));
