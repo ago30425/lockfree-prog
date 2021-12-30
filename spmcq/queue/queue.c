@@ -109,7 +109,7 @@ void spmcq_test(queue_t *spmcq)
 
     printf("SPMC test...\n");
     for (int i = 0; i < spmcq_get_maxsize(spmcq); i++) {
-        if (observed_items[i] == 1) {
+        if (__atomic_load_n(&observed_items[i], __ATOMIC_RELAXED) == 1) {
             continue;
         }
 

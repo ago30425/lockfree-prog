@@ -3,7 +3,7 @@
 #include <limits.h>
 
 #define MIN_QUEUE_SIZE    1
-#define MAX_QUEUE_SIZE    (1 << 21)  // 2MB
+#define MAX_QUEUE_SIZE    (1 << 26)  // 64MB
 
 #define IS_POWER_OF_2(x) (((~(x)) & (x)) == 0)
 
