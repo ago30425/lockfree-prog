@@ -9,13 +9,13 @@
 #   include "test.h"
 #endif
 
-queue_t* spmcq_create(int size, QMETHOD method_id)
+queue_t* spmcq_create(uint32_t size, QMETHOD method_id)
 {
     queue_t *q = NULL;
     q_node_t **ring_buf = NULL;
     q_method_t *m;
 
-    if (size <= 0)
+    if (size == 0)
         return NULL;
 
     switch (method_id) {
@@ -67,9 +67,9 @@ void spmcq_release(queue_t *spmcq)
     free(spmcq);
 }
 
-int spmcq_get_maxsize(queue_t *spmcq)
+uint32_t spmcq_get_maxsize(queue_t *spmcq)
 {
-    int size = 0;
+    uint32_t size = 0;
 
     if (spmcq)
         size = spmcq->size;
@@ -108,12 +108,12 @@ void spmcq_test(queue_t *spmcq)
     }
 
     printf("SPMC test...\n");
-    for (int i = 0; i < spmcq_get_maxsize(spmcq); i++) {
+    for (uint32_t i = 0; i < spmcq_get_maxsize(spmcq); i++) {
         if (__atomic_load_n(&observed_items[i], __ATOMIC_RELAXED) == 1) {
             continue;
         }
 
-        fprintf(stderr, "[Failed] Item %d has been seen %d times\n",
+        fprintf(stderr, "[Failed] Item %u has been seen %d times\n",
                 i, observed_items[i]);
         return;
     }

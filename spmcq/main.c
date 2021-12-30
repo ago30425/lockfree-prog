@@ -43,12 +43,11 @@ typedef struct {
 
 static void * producer_thread(void *args)
 {
-    int i;
     queue_t *spmcq = (queue_t *)args;
 
-    for (i = 0; i < spmcq_get_maxsize(spmcq); i++) {
+    for (uint32_t i = 0; i < spmcq_get_maxsize(spmcq); i++) {
         /* TODO: error handling */
-        spmcq_enqueue(spmcq, i);
+        spmcq_enqueue(spmcq, (int)i);
     }
 
     return NULL;
@@ -58,15 +57,15 @@ static void * consumer_thread(void *args)
 {
     int val;
     queue_t *spmcq = (queue_t *)args;
-    int max_items = spmcq_get_maxsize(spmcq);
+    uint32_t max_items = spmcq_get_maxsize(spmcq);
 
     /* TODO: error handling */
     for (;;) {
         spmcq_dequeue(spmcq, &val);
 
         /* Notify other consumers to stop */
-        if (val >= max_items - 1) {
-            spmcq_enqueue(spmcq, max_items);
+        if ((uint32_t)val >= max_items - 1) {
+            spmcq_enqueue(spmcq, (int)max_items);
             break;
         }
     }
@@ -173,7 +172,7 @@ int main(int argc, char *argv[])
     DBG_CMD_PARSING("Configs: nthread: %d, qsize: %d, testId: %d\n",
                     (int)configs.nthread, (int)configs.qsize, (int)configs.testId);
 
-    spmcq = spmcq_create(configs.qsize, configs.testId);
+    spmcq = spmcq_create((uint32_t)configs.qsize, configs.testId);
     if (!spmcq) {
         ERR_HANDLE_PRINT("spmcq_create failed\n");
     }

@@ -1,6 +1,7 @@
 #ifndef __QUEUE_H__
 #define __QUEUE_H__
 #include <limits.h>
+#include <stdint.h>
 
 #define MIN_QUEUE_SIZE    1
 #define MAX_QUEUE_SIZE    (1 << 26)  // 64MB
@@ -23,8 +24,8 @@ typedef enum {
 typedef struct q_node q_node_t;
 typedef struct queue queue_t;
 
-queue_t* spmcq_create(int, QMETHOD);
-int spmcq_get_maxsize(queue_t *);
+queue_t* spmcq_create(uint32_t, QMETHOD);
+uint32_t spmcq_get_maxsize(queue_t *);
 int spmcq_enqueue(queue_t *, int);
 int spmcq_dequeue(queue_t *, int *);
 void spmcq_release(queue_t *);
