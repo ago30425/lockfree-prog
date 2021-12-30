@@ -9,13 +9,13 @@
 #   include "test.h"
 #endif
 
-queue_t* spmcq_create(int max_size, QMETHOD method_id)
+queue_t* spmcq_create(int size, QMETHOD method_id)
 {
     queue_t *q = NULL;
     q_node_t **ring_buf = NULL;
     q_method_t *m;
 
-    if (max_size <= 0)
+    if (size <= 0)
         return NULL;
 
     switch (method_id) {
@@ -31,12 +31,12 @@ queue_t* spmcq_create(int max_size, QMETHOD method_id)
     if (!q)
         goto err;
 
-    ring_buf = (q_node_t **)malloc(sizeof(q_node_t *) * max_size);
+    ring_buf = (q_node_t **)malloc(sizeof(q_node_t *) * size);
     if (!ring_buf)
         goto err;
 
     q->ring_buf = ring_buf;
-    q->max_size = max_size;
+    q->size = size;
     q->method = m;
 
     if (q->method->init &&
@@ -69,12 +69,12 @@ void spmcq_release(queue_t *spmcq)
 
 int spmcq_get_maxsize(queue_t *spmcq)
 {
-    int max_size = 0;
+    int size = 0;
 
     if (spmcq)
-        max_size = spmcq->max_size;
+        size = spmcq->size;
 
-    return max_size;
+    return size;
 }
 
 int spmcq_enqueue(queue_t *spmcq, int val)

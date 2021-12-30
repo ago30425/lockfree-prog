@@ -1,7 +1,7 @@
 SRCS = $(wildcard *.c)
 OBJS = $(patsubst %.c, %.o, $(SRCS))
 
-INCS = -Iinclude
+INCS = -Iinclude -Iinclude/internal
 
 TARGET = libqueue.a
 

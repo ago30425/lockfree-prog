@@ -3,7 +3,7 @@ CC = gcc
 AR = ar
 
 CFLAGS = -Werror -O2
-INCS = -Iqueue/include
+INCS =  -Iinclude -Iqueue/include
 LIBS = -lpthread queue/libqueue.a
 
 ifeq ($(TEST), y)

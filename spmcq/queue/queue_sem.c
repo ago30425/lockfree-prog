@@ -35,7 +35,7 @@ static int qsem_init(queue_t *q)
         return SPMCQ_INVALID_PARAM;
     }
 
-    if (!IS_POWER_OF_2(q->max_size)) {
+    if (!IS_POWER_OF_2(q->size)) {
         return SPMCQ_INVALID_PARAM;
     }
 
@@ -77,7 +77,7 @@ static int qsem_init(queue_t *q)
         goto err;
     }
 
-    if (sem_init(lock->sspace, 0, q->max_size) == 0) {
+    if (sem_init(lock->sspace, 0, q->size) == 0) {
         lock_succ |= 0x04;
     } else {
         ret = SPMCQ_SEMAPHORE_ERR;
@@ -173,7 +173,7 @@ static int qsem_enqueue(queue_t *q, int val)
         goto err;
     }
 
-    q->ring_buf[(q->front++) & (q->max_size - 1)] = node;
+    q->ring_buf[(q->front++) & (q->size - 1)] = node;
     q->num++;
 
     if (pthread_mutex_unlock(lock->m) != 0) {
@@ -220,7 +220,7 @@ static int qsem_dequeue(queue_t *q, int *val)
         goto err;
     }
 
-    tmp_node = q->ring_buf[(q->rear++) & (q->max_size - 1)];
+    tmp_node = q->ring_buf[(q->rear++) & (q->size - 1)];
     q->num--;
 
     if (pthread_mutex_unlock(lock->m) != 0) {

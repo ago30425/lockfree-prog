@@ -1,11 +1,7 @@
 #ifndef __QUEUE_INTERNAL_H__
 #define __QUEUE_INTERNAL_H__
 #include <stdint.h>
-
-/*enum QMETHOD {
-    QMETHOD_SEM = 0,
-    QMETHOD_NUM
-}*/
+#include "arch.h"
 
 typedef struct q_node {
     int val;
@@ -13,16 +9,16 @@ typedef struct q_node {
 
 typedef struct queue {
     void *lock;
-    q_node_t **ring_buf;
-    /* TODO: Make portable type */
+    struct q_method *method;
     uint32_t front;
     uint32_t rear;
-    struct q_method *method;
-    /* Max size of the queue */
-    int  max_size;
+    /* The size of the queue */
+    uint32_t size;
     /* Current number of nodes in queue */
-    int  num;
-} queue_t;
+    int num;
+
+    q_node_t **ring_buf __attribute__((__aligned__(CACHE_LINE_SIZE)));
+} queue_t __attribute__((__aligned__(CACHE_LINE_SIZE)));
 
 typedef int (* init_cb) (queue_t *);
 typedef int (* destroy_cb) (queue_t *);
