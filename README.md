@@ -1,5 +1,8 @@
 # lockfree-prog
 
+## Supported Synchronization Methods
+* Semaphore and mutex
+
 ## Build
 * Normal build
   ```
@@ -16,7 +19,7 @@
   ```
   make DEBUG=y 
   ```
-   * Enable debugging messages.
+   * Build debug version and enable debugging messages.
 
 ## Misc
 * Beautify code using astyle.
