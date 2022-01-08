@@ -6,7 +6,7 @@
 #define MIN_QUEUE_SIZE    1
 #define MAX_QUEUE_SIZE    (1 << 26)  // 64MB
 
-#define IS_POWER_OF_2(x) (((~(x)) & (x)) == 0)
+#define IS_POWER_OF_2(x) ((((x) - 1) & (x)) == 0)
 
 enum SPMCQ_ERR {
     SPMCQ_SUCCESS = 0,

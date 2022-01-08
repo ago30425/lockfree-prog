@@ -1,7 +1,6 @@
 #ifndef __ERROR_H__
 #define __ERROR_H__
-
-#define IS_POWER_OF_2(x) (((~(x)) & (x)) == 0)
+#include "queue.h"
 
 #define ERR_HANDLE_EX(msg, en)	\
 	do { fprintf(stderr, "[Error] "); errno = en; perror(msg); exit(EXIT_FAILURE); } while (0);
