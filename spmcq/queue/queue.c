@@ -48,7 +48,7 @@ queue_t* spmcq_create(uint32_t size, QMETHOD method_id)
 
 #ifdef TEST
     q->nObsvItems = nData + 1;
-    observed_items = (int *)malloc(sizeof(int) * q->nObsvItems);
+    observed_items = (int *)calloc(1, sizeof(int) * q->nObsvItems);
     if (!observed_items)
         goto err;
 
