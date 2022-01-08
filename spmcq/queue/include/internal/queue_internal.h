@@ -17,6 +17,11 @@ typedef struct queue {
     /* Current number of nodes in queue */
     int num;
 
+#ifdef TEST
+    int *observed_items;
+    int nObsvItems;
+#endif
+
     q_node_t **ring_buf __attribute__((__aligned__(CACHE_LINE_SIZE)));
 } queue_t __attribute__((__aligned__(CACHE_LINE_SIZE)));
 

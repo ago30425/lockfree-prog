@@ -9,11 +9,18 @@
 #   include "test.h"
 #endif
 
+#ifdef TEST
+queue_t* spmcq_create(uint32_t size, QMETHOD method_id, int nData)
+#else
 queue_t* spmcq_create(uint32_t size, QMETHOD method_id)
+#endif
 {
     queue_t *q = NULL;
     q_node_t **ring_buf = NULL;
     q_method_t *m;
+#ifdef TEST
+    int *observed_items = NULL;
+#endif
 
     if (size == 0)
         return NULL;
@@ -39,6 +46,15 @@ queue_t* spmcq_create(uint32_t size, QMETHOD method_id)
     q->size = size;
     q->method = m;
 
+#ifdef TEST
+    q->nObsvItems = nData + 1;
+    observed_items = (int *)malloc(sizeof(int) * q->nObsvItems);
+    if (!observed_items)
+        goto err;
+
+    q->observed_items = observed_items;
+#endif
+
     if (q->method->init &&
         q->method->init(q) < 0) {
         goto err;
@@ -49,6 +65,9 @@ queue_t* spmcq_create(uint32_t size, QMETHOD method_id)
 err:
     if (ring_buf) free(ring_buf);
     if (q)        free(q);
+#ifdef TEST
+    if (observed_items) free(observed_items);
+#endif
 
     return NULL;
 }
@@ -108,13 +127,13 @@ void spmcq_test(queue_t *spmcq)
     }
 
     printf("SPMC test...\n");
-    for (uint32_t i = 0; i < spmcq_get_maxsize(spmcq); i++) {
-        if (__atomic_load_n(&observed_items[i], __ATOMIC_RELAXED) == 1) {
+    for (int i = 0; i < spmcq->nObsvItems - 1; i++) {
+        if (spmcq->observed_items[i] == 1) {
             continue;
         }
 
         fprintf(stderr, "[Failed] Item %u has been seen %d times\n",
-                i, observed_items[i]);
+                i, spmcq->observed_items[i]);
         return;
     }
 

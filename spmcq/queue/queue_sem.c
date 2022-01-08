@@ -237,7 +237,7 @@ static int qsem_dequeue(queue_t *q, int *val)
         *val = tmp_node->val;
 
 #ifdef TEST
-    __atomic_add_fetch(&observed_items[*val], 1, __ATOMIC_RELAXED);
+    __atomic_add_fetch(&q->observed_items[*val], 1, __ATOMIC_RELAXED);
 #endif
 
 err:

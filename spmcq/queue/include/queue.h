@@ -24,7 +24,11 @@ typedef enum {
 typedef struct q_node q_node_t;
 typedef struct queue queue_t;
 
+#ifdef TEST
+queue_t* spmcq_create(uint32_t, QMETHOD, int);
+#else
 queue_t* spmcq_create(uint32_t, QMETHOD);
+#endif
 uint32_t spmcq_get_maxsize(queue_t *);
 int spmcq_enqueue(queue_t *, int);
 int spmcq_dequeue(queue_t *, int *);

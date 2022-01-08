@@ -172,7 +172,14 @@ int main(int argc, char *argv[])
     DBG_CMD_PARSING("Configs: nthread: %d, qsize: %d, testId: %d\n",
                     (int)configs.nthread, (int)configs.qsize, (int)configs.testId);
 
-    spmcq = spmcq_create((uint32_t)configs.qsize, configs.testId);
+
+    spmcq =
+#ifdef TEST
+        spmcq_create((uint32_t)configs.qsize, configs.testId, (int)configs.nData);
+#else
+        spmcq_create((uint32_t)configs.qsize, configs.testId);
+#endif
+
     if (!spmcq) {
         ERR_HANDLE_PRINT("spmcq_create failed\n");
     }
