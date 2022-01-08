@@ -13,9 +13,12 @@
 /****************** Command *****************/
 #define CMD_OPT_NBTHREADS    'n'
 #define CMD_OPT_QSIZE        'q'
+#define CMD_OPT_DATA_AMOUNT  'd'
 #define CMD_OPT_METHOD       'i'
 #define CMD_OPT_HELP         'h'
 #define CND_OPT_DUMMY        0xFF
+
+#define CMD_OPTS "n:q:d:i:h"
 
 typedef struct {
     int opt;
@@ -24,30 +27,42 @@ typedef struct {
 
 /* TODO: flag for disabling CPU affinity*/
 cmd_opts_t cmdOptTbl[] = {
-    {CMD_OPT_NBTHREADS,  "Specify the number of threads"},
-    {CMD_OPT_QSIZE,      "Specify the size of queue"},
-    {CMD_OPT_METHOD,     "Specify which method to use to avoid data race"},
-    {CMD_OPT_HELP,       "Show help messages"},
-    {CND_OPT_DUMMY,      NULL}
+    {CMD_OPT_NBTHREADS,   "Specify the number of threads"},
+    {CMD_OPT_QSIZE,       "Specify the size of queue"},
+    {CMD_OPT_DATA_AMOUNT, "Specify the amount of data to test"},
+    {CMD_OPT_METHOD,      "Specify which method to use to avoid data race"},
+    {CMD_OPT_HELP,        "Show help messages"},
+    {CND_OPT_DUMMY,       NULL}
 };
 
 /****************** Config ******************/
 #define MIN_THREAD_NUM       2
 #define MAX_THREAD_NUM       128
 
+#define MIN_DATA_AMOUNT      1
+#define MAX_DATA_AMOUNT      (1 << 26) // 64 MB
+
 typedef struct {
     long nthread;
     long qsize;
+    long nData;
     long testId;
 } config_t;
 
+typedef struct {
+    queue_t *spmcq;
+    int nData;
+} thread_args_t;
+
 static void * producer_thread(void *args)
 {
-    queue_t *spmcq = (queue_t *)args;
+    thread_args_t *thread_args = (thread_args_t *)args;
+    queue_t *spmcq = thread_args->spmcq;
+    int nData = thread_args->nData;
 
-    for (uint32_t i = 0; i < spmcq_get_maxsize(spmcq); i++) {
+    for (int i = 0; i < nData; i++) {
         /* TODO: error handling */
-        spmcq_enqueue(spmcq, (int)i);
+        spmcq_enqueue(spmcq, i);
     }
 
     return NULL;
@@ -56,16 +71,17 @@ static void * producer_thread(void *args)
 static void * consumer_thread(void *args)
 {
     int val;
-    queue_t *spmcq = (queue_t *)args;
-    uint32_t max_items = spmcq_get_maxsize(spmcq);
+    thread_args_t *thread_args = (thread_args_t *)args;
+    queue_t *spmcq = thread_args->spmcq;
+    int max_items = thread_args->nData;
 
     /* TODO: error handling */
     for (;;) {
         spmcq_dequeue(spmcq, &val);
 
         /* Notify other consumers to stop */
-        if ((uint32_t)val >= max_items - 1) {
-            spmcq_enqueue(spmcq, (int)max_items);
+        if (val >= max_items - 1) {
+            spmcq_enqueue(spmcq, max_items);
             break;
         }
     }
@@ -124,6 +140,10 @@ static void config_set_default(config_t *cfg)
     if (cfg->qsize == 0) {
         cfg->qsize = 1024;
     }
+
+    if (cfg->nData == 0) {
+        cfg->nData = 4096;
+    }
 }
 
 int main(int argc, char *argv[])
@@ -134,9 +154,10 @@ int main(int argc, char *argv[])
     struct timespec start_time, end_time;
     pthread_t prod_tid, *cons_tids;
     queue_t* spmcq;
+    thread_args_t thread_args;
 
     /* Parse command */
-    while ((opt = getopt(argc, argv, "n:q:i:h")) != -1) {
+    while ((opt = getopt(argc, argv, CMD_OPTS)) != -1) {
         switch (opt) {
         case CMD_OPT_NBTHREADS:
             configs.nthread = strtol(optarg, NULL, 10);
@@ -146,6 +167,10 @@ int main(int argc, char *argv[])
             configs.qsize = strtol(optarg, NULL, 10);
             CHECK_NUM_OUT_OF_RANGE(opt, configs.qsize, MIN_QUEUE_SIZE, MAX_QUEUE_SIZE);
             CHECK_NUM_IS_POWER_OF_2(opt, configs.qsize);
+            break;
+        case CMD_OPT_DATA_AMOUNT:
+            configs.nData = strtol(optarg, NULL, 10);
+            CHECK_NUM_OUT_OF_RANGE(opt, configs.nData, MIN_DATA_AMOUNT, MAX_DATA_AMOUNT);
             break;
         case CMD_OPT_METHOD:
             configs.testId = strtol(optarg, NULL, 10);
@@ -160,8 +185,10 @@ int main(int argc, char *argv[])
         }
     }
 
-    DBG_CMD_PARSING("Command options: optind: %d, nthread: %d, qsize: %d, testId: %d\n",
-                    optind, (int)configs.nthread, (int)configs.qsize, (int)configs.testId);
+    DBG_CMD_PARSING("Command options: optind: %d, nthread: %d, "
+                    "qsize: %d, nData: %d, testId: %d\n",
+                    optind, (int)configs.nthread,
+                    (int)configs.qsize, (int)configs.nData, (int)configs.testId);
 
     if (argc - 1 >= optind) {
         ERR_HANDLE_PRINT("Too many arguments\n");
@@ -169,9 +196,10 @@ int main(int argc, char *argv[])
 
     config_set_default(&configs);
 
-    DBG_CMD_PARSING("Configs: nthread: %d, qsize: %d, testId: %d\n",
-                    (int)configs.nthread, (int)configs.qsize, (int)configs.testId);
-
+    DBG_CMD_PARSING("Configs: nthread: %d, qsize: %d, "
+                    "nData: %d, testId: %d\n",
+                    (int)configs.nthread, (int)configs.qsize,
+                    (int)configs.nData, (int)configs.testId);
 
     spmcq =
 #ifdef TEST
@@ -184,13 +212,16 @@ int main(int argc, char *argv[])
         ERR_HANDLE_PRINT("spmcq_create failed\n");
     }
 
+    thread_args.spmcq = spmcq;
+    thread_args.nData = (int)configs.nData;
+
     /* Create threads and do CPU pinning*/
     cons_tids = (pthread_t *)malloc(sizeof(pthread_t) * (configs.nthread - 1));
     if (!cons_tids) {
         ERR_HANDLE_PRINT("malloc failed\n");
     }
 
-    ret = pthread_create(&prod_tid, NULL, producer_thread, (void *)spmcq);
+    ret = pthread_create(&prod_tid, NULL, producer_thread, (void *)&thread_args);
     if (ret != 0) {
         ERR_HANDLE_EX("pthread_create", ret);
     }
@@ -205,7 +236,7 @@ int main(int argc, char *argv[])
     }
 
     for (i = 0; i < configs.nthread - 1; i++) {
-        ret = pthread_create(&cons_tids[i], NULL, consumer_thread, (void *)spmcq);
+        ret = pthread_create(&cons_tids[i], NULL, consumer_thread, (void *)&thread_args);
         if (ret != 0) {
             ERR_HANDLE_EX("pthread_create", ret);
         }

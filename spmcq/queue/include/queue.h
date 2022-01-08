@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 #define MIN_QUEUE_SIZE    1
-#define MAX_QUEUE_SIZE    (1 << 26)  // 64MB
+#define MAX_QUEUE_SIZE    (1 << 12)  // 4 KB
 
 #define IS_POWER_OF_2(x) ((((x) - 1) & (x)) == 0)
 
