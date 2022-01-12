@@ -58,11 +58,11 @@ static int qlockfree_enqueue(queue_t *q, int val)
 
     node->val = val;
 
-    while (q->front - QUEUE_REAR_ATOMIC(q)
+    while (q->rear - QUEUE_FRONT_ATOMIC(q)
            == q->size);
 
-    q->ring_buf[QUEUE_OFFSET(q->front, q)] = node;
-    __atomic_add_fetch(&q->front, 1, __ATOMIC_RELEASE);
+    q->ring_buf[QUEUE_OFFSET(q->rear, q)] = node;
+    __atomic_add_fetch(&q->rear, 1, __ATOMIC_RELEASE);
 
     return SPMCQ_SUCCESS;
 err:
@@ -74,19 +74,19 @@ err:
 static int qlockfree_dequeue(queue_t *q, int *val)
 {
     q_node_t *tmp_node = NULL;
-    uint32_t tmp_rear;
+    uint32_t tmp_front;
 
     do {
 retry:
-        tmp_rear = QUEUE_REAR_ATOMIC(q);
-        if (tmp_rear == q->front)
+        tmp_front = QUEUE_FRONT_ATOMIC(q);
+        if (tmp_front == q->rear)
             goto retry;
 
-        tmp_node = q->ring_buf[QUEUE_OFFSET(tmp_rear, q)];
+        tmp_node = q->ring_buf[QUEUE_OFFSET(tmp_front, q)];
         /* No ABA problem here because rear is 32-bit long and
          * it takes a long time to wrap around if the thread is preempted before CAS.
          */
-    } while (!__atomic_compare_exchange_n(&q->rear, &tmp_rear, tmp_rear + 1,
+    } while (!__atomic_compare_exchange_n(&q->front, &tmp_front, tmp_front + 1,
                                           1, __ATOMIC_RELAXED, __ATOMIC_RELAXED));
 
     if (val)

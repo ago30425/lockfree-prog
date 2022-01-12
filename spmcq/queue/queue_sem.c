@@ -171,7 +171,7 @@ static int qsem_enqueue(queue_t *q, int val)
         goto err;
     }
 
-    q->ring_buf[(q->front++) & (q->size - 1)] = node;
+    q->ring_buf[(q->rear++) & (q->mask)] = node;
 
     if (pthread_mutex_unlock(lock->m) != 0) {
         ret = SPMCQ_MUTEX_ERR;
@@ -217,7 +217,7 @@ static int qsem_dequeue(queue_t *q, int *val)
         goto err;
     }
 
-    tmp_node = q->ring_buf[(q->rear++) & (q->size - 1)];
+    tmp_node = q->ring_buf[(q->front++) & (q->mask)];
 
     if (pthread_mutex_unlock(lock->m) != 0) {
         ret = SPMCQ_MUTEX_ERR;
