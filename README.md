@@ -2,6 +2,7 @@
 
 ## Supported Synchronization Methods
 * Semaphore and mutex
+* Lock-free
 
 ## Build
 * Normal build

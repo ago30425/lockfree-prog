@@ -5,6 +5,7 @@
 #include "queue.h"
 #include "queue_internal.h"
 #include "queue_sem.h"
+#include "queue_lockfree.h"
 #ifdef TEST
 #   include "test.h"
 #endif
@@ -22,12 +23,15 @@ queue_t* spmcq_create(uint32_t size, QMETHOD method_id)
     int *observed_items = NULL;
 #endif
 
-    if (size == 0)
+    if (size == 0 || !IS_POWER_OF_2(size))
         return NULL;
 
     switch (method_id) {
     case QMETHOD_SEM:
         m = &queue_sem_method;
+        break;
+    case QMETHOD_LOCKFREE:
+        m = &queue_lockfree_method;
         break;
     default:
         m = &queue_sem_method;
@@ -45,6 +49,7 @@ queue_t* spmcq_create(uint32_t size, QMETHOD method_id)
     q->ring_buf = ring_buf;
     q->size = size;
     q->method = m;
+    q->mask = size - 1;
 
 #ifdef TEST
     q->nObsvItems = nData + 1;
@@ -122,7 +127,7 @@ int spmcq_dequeue(queue_t *spmcq, int *val)
 void spmcq_test(queue_t *spmcq)
 {
     if (!spmcq) {
-        fprintf(stderr, "[Failed] spmcq is NULL\n");
+        printf("[Failed] spmcq is NULL\n");
         return;
     }
 
@@ -132,8 +137,8 @@ void spmcq_test(queue_t *spmcq)
             continue;
         }
 
-        fprintf(stderr, "[Failed] Item %u has been seen %d times\n",
-                i, spmcq->observed_items[i]);
+        printf("[Failed] Item %d has been seen %d times\n",
+               i, spmcq->observed_items[i]);
         return;
     }
 

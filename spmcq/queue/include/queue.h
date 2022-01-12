@@ -18,6 +18,7 @@ enum SPMCQ_ERR {
 
 typedef enum {
     QMETHOD_SEM = 0,
+    QMETHOD_LOCKFREE,
     QMETHOD_NUM
 } QMETHOD;
 

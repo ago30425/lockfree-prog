@@ -3,6 +3,19 @@
 #include <stdint.h>
 #include "arch.h"
 
+#define QUEUE_OFFSET(idx, q)        ((idx) & ((q)->mask))
+#define QUEUE_FRONT_ATOMIC(q)       (__atomic_load_n(&(q)->front, __ATOMIC_RELAXED))
+#define QUEUE_REAR_ATOMIC(q)        (__atomic_load_n(&(q)->rear, __ATOMIC_RELAXED))
+/* Be careful to use macro below
+ * as it just simple ways to get information from queue.
+ * Might not be suitable for lock-free operation.
+ */
+#define QUEUE_FRONT(q)              (&(q)-front)
+#define QUEUE_REAR(q)               (&(q)->rear)
+#define QUEUE_LEN(q)                (QUEUE_FRONT(q) - QUEUE_REAR(q))
+#define QUEUE_FULL(q)               (QUEUE_LEN(q) == (q)->size)
+#define QUEUE_EMPTY(q)              ((q)->front == (q)->rear)
+
 typedef struct q_node {
     int val;
 } q_node_t;
@@ -10,18 +23,17 @@ typedef struct q_node {
 typedef struct queue {
     void *lock;
     struct q_method *method;
-    uint32_t front;
-    uint32_t rear;
+    volatile uint32_t front, rear;
+    uint32_t mask;
     /* The size of the queue */
     uint32_t size;
-    /* Current number of nodes in queue */
-    int num;
 
 #ifdef TEST
     int *observed_items;
     int nObsvItems;
 #endif
 
+    // TODO: use arrays of length zero
     q_node_t **ring_buf __attribute__((__aligned__(CACHE_LINE_SIZE)));
 } queue_t __attribute__((__aligned__(CACHE_LINE_SIZE)));
 
@@ -30,6 +42,8 @@ typedef int (* destroy_cb) (queue_t *);
 typedef int (* enqueue_cb) (queue_t *, int);
 typedef int (* dequeue_cb) (queue_t *, int *);
 
+/* The enqueue and dequeue are blocking operation.
+ */
 typedef struct q_method {
     init_cb init;
     destroy_cb destroy;
