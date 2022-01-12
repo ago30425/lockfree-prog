@@ -2,7 +2,7 @@
 CC = gcc
 AR = ar
 
-CFLAGS = -Werror -O2
+CFLAGS = -Wall -Wextra -Werror -O2
 INCS =  -Iinclude -Iqueue/include
 LIBS = -lpthread queue/libqueue.a
 
