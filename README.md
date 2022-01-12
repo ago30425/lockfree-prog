@@ -1,4 +1,5 @@
 # lockfree-prog
+A project to practice lock-free programming.
 
 ## Supported Synchronization Methods
 * Semaphore and mutex
@@ -27,3 +28,7 @@
   ```
   make format
   ```
+
+## Reference
+* https://github.com/sysprog21/concurrent-programs/tree/master/spmc
+* https://github.com/xhjcehust/LFTPool
