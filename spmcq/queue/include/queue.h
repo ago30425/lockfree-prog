@@ -26,17 +26,17 @@ typedef struct q_node q_node_t;
 typedef struct queue queue_t;
 
 #ifdef TEST
-queue_t* spmcq_create(uint32_t, QMETHOD, int);
+queue_t* spmcq_create(uint32_t size, QMETHOD method_id, int nData);
 #else
-queue_t* spmcq_create(uint32_t, QMETHOD);
+queue_t* spmcq_create(uint32_t size, QMETHOD method_id);
 #endif
-uint32_t spmcq_get_maxsize(queue_t *);
-int spmcq_enqueue(queue_t *, int);
-int spmcq_dequeue(queue_t *, int *);
-void spmcq_release(queue_t *);
+uint32_t spmcq_get_maxsize(queue_t *q);
+int spmcq_enqueue(queue_t *q, int val);
+int spmcq_dequeue(queue_t *q, int *val);
+void spmcq_release(queue_t *q);
 
 #ifdef TEST
-void spmcq_test(queue_t *);
+void spmcq_test(queue_t *q);
 #else
 #define spmcq_test(...)
 #endif

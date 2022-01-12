@@ -10,10 +10,10 @@
 #   include "test.h"
 #endif
 
-static int qsem_init(queue_t *);
-static int qsem_destroy(queue_t *);
-static int qsem_enqueue(queue_t *, int);
-static int qsem_dequeue(queue_t *, int *);
+static int qsem_init(queue_t *q);
+static int qsem_destroy(queue_t *q);
+static int qsem_enqueue(queue_t *q, int val);
+static int qsem_dequeue(queue_t *q, int *val);
 
 q_method_t queue_sem_method  = {
     .init = qsem_init,

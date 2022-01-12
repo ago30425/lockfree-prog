@@ -8,10 +8,10 @@
 #   include "test.h"
 #endif
 
-static int qlockfree_init(queue_t *);
-static int qlockfree_destroy(queue_t *);
-static int qlockfree_enqueue(queue_t *, int);
-static int qlockfree_dequeue(queue_t *, int *);
+static int qlockfree_init(queue_t *q);
+static int qlockfree_destroy(queue_t *q);
+static int qlockfree_enqueue(queue_t *q, int val);
+static int qlockfree_dequeue(queue_t *q, int *val);
 
 q_method_t queue_lockfree_method  = {
     .init = qlockfree_init,
