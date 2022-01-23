@@ -83,7 +83,7 @@ retry:
             goto retry;
 
         tmp_node = q->ring_buf[QUEUE_OFFSET(tmp_front, q)];
-        /* No ABA problem here because rear is 32-bit long and
+        /* No ABA problem here because front is 32-bit long and
          * it takes a long time to wrap around if the thread is preempted before CAS.
          */
     } while (!__atomic_compare_exchange_n(&q->front, &tmp_front, tmp_front + 1,
