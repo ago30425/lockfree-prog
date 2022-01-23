@@ -36,6 +36,20 @@ A project to practice lock-free programming.
   make format
   ```
 
+## Tools
+### Plot
+Create the picture of performance comparison using *gnuplot*.
+* Path: `tools/plot`
+* Prerequisites
+  * Install python3
+  * Install gnuplot
+* How to use
+  * You can modify the config in the `plot.py` to meet the requirement.
+  * Run `python plot.py`
+* Ouput files
+  * Execution time statistics: `summary.stat`
+  * The performance comparison picture: `perf.png`
+
 ## Reference
 * https://github.com/sysprog21/concurrent-programs/tree/master/spmc
 * https://github.com/xhjcehust/LFTPool
