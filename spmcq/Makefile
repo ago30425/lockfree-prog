@@ -1,32 +1,25 @@
-# Cross compile
-CC = gcc
-AR = ar
+include compile.mk
+include config.mk
 
-CFLAGS = -Wall -Wextra -Werror -O2
-INCS =  -Iinclude -Iqueue/include
+TOP = $(shell pwd)
+
+INCS = -Iinclude -Iqueue/include
 LIBS = -lpthread queue/libqueue.a
 
-ifeq ($(TEST), y)
-	CFLAGS += -DTEST
-endif
-
-ifeq ($(DEBUG), )
-	CFLAGS += -DNDEBUG
-endif
-
-SRCS = $(wildcard *.c)
-OBJS = $(patsubst %.c, %.o, $(SRCS))
+SUBDIRS = queue
 TARGET = spmcq
 
-SUBDIRS = queue
 BUILDSUBDIRS = $(SUBDIRS:%=build-%)
 CLEANSUBDIRS = $(SUBDIRS:%=clean-%)
 
-export CC AR CFLAGS
+export TOP
 
-.PHONY: all clean $(BUILDSUBDIRS) $(CLEANSUBDIRS) format
+.PHONY: all clean $(DEPDIR) $(BUILDSUBDIRS) $(CLEANSUBDIRS) format
 
-all: $(BUILDSUBDIRS) $(TARGET)
+all: $(DEPDIR) $(BUILDSUBDIRS) $(TARGET)
+
+$(DEPDIR):
+	mkdir -p $@
 
 $(BUILDSUBDIRS):
 	$(MAKE) -C $(@:build-%=%)
@@ -35,7 +28,7 @@ $(TARGET): $(OBJS)
 	$(CC) $(CFLAGS) $(LDFLAGS) $^ -o $@ $(LIBS)
 
 %.o: %.c
-	$(CC) $(CFLAGS) $(INCS)  -c $< -o $@
+	$(CC) $(DEPFLAGS) $(CFLAGS) $(INCS)  -c $< -o $@
 
 clean: $(CLEANSUBDIRS)
 	rm -f $(TARGET) $(OBJS)
@@ -46,3 +39,5 @@ $(CLEANSUBDIRS):
 # TODO: Use automatically when pre-commmit
 format:
 	astyle --style=linux --recursive -n "*.c" "*.h"
+
+-include $(DEPFILES)
