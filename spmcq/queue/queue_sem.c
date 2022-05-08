@@ -25,6 +25,9 @@ q_method_t queue_sem_method  = {
 /*
  * TODO: Debug messages for mutex and semaphore
  */
+#define ERR_MUTEX_INIT    0x01
+#define ERR_SEM_INIT1     0x02
+#define ERR_SEM_INIT2     0x04
 static int qsem_init(queue_t *q)
 {
     qsem_lock_t *lock;
@@ -35,7 +38,9 @@ static int qsem_init(queue_t *q)
         return SPMCQ_INVALID_PARAM;
     }
 
-    assert(IS_POWER_OF_2(q->size));
+    if (!IS_POWER_OF_2(q->size)) {
+        return SPMCQ_INVALID_PARAM;
+    }
 
     lock = (qsem_lock_t *)calloc(1, sizeof(qsem_lock_t));
     if (!lock) {
@@ -62,21 +67,21 @@ static int qsem_init(queue_t *q)
     }
 
     if (pthread_mutex_init(lock->m, NULL) == 0) {
-        lock_succ |= 0x01;
+        lock_succ |= ERR_MUTEX_INIT;
     } else {
         ret = SPMCQ_MUTEX_ERR;
         goto err;
     }
 
     if (sem_init(lock->snodes, 0, 0) == 0) {
-        lock_succ |= 0x02;
+        lock_succ |= ERR_SEM_INIT1;
     } else {
         ret = SPMCQ_SEMAPHORE_ERR;
         goto err;
     }
 
     if (sem_init(lock->sspace, 0, q->size) == 0) {
-        lock_succ |= 0x04;
+        lock_succ |= ERR_SEM_INIT2;
     } else {
         ret = SPMCQ_SEMAPHORE_ERR;
         goto err;
@@ -87,14 +92,26 @@ static int qsem_init(queue_t *q)
     return SPMCQ_SUCCESS;
 
 err:
-    if (lock_succ & 0x01) pthread_mutex_destroy(lock->m);
-    if (lock_succ & 0x02) sem_destroy(lock->snodes);
-    if (lock_succ & 0x04) sem_destroy(lock->sspace);
+    if (lock_succ & ERR_MUTEX_INIT)
+        pthread_mutex_destroy(lock->m);
 
-    if (lock->m)      free(lock->m);
-    if (lock->snodes) free(lock->snodes);
-    if (lock->sspace) free(lock->sspace);
-    if (lock)         free(lock);
+    if (lock_succ & ERR_SEM_INIT1)
+        sem_destroy(lock->snodes);
+
+    if (lock_succ & ERR_SEM_INIT2)
+        sem_destroy(lock->sspace);
+
+    if (lock->m)
+        free(lock->m);
+
+    if (lock->snodes)
+        free(lock->snodes);
+
+    if (lock->sspace)
+        free(lock->sspace);
+
+    if (lock)
+        free(lock);
 
     return ret;
 }
@@ -127,10 +144,17 @@ static int qsem_destroy(queue_t *q)
 
 err:
     if (lock) {
-        if (lock->m)      free(lock->m);
-        if (lock->snodes) free(lock->snodes);
-        if (lock->sspace) free(lock->sspace);
-        if (lock)         free(lock);
+        if (lock->m)
+            free(lock->m);
+
+        if (lock->snodes)
+            free(lock->snodes);
+
+        if (lock->sspace)
+            free(lock->sspace);
+
+        if (lock)
+            free(lock);
     }
 
     return ret;
@@ -150,8 +174,10 @@ static int qsem_enqueue(queue_t *q, int val)
         goto err;
     }
 
-    assert(q->lock);
-    lock = q->lock;
+    if ((lock = q->lock) == NULL) {
+        ret = SPMCQ_INVALID_PARAM;
+        goto err;
+    }
 
     node = (q_node_t *)malloc(sizeof(*node));
     if (!node) {
@@ -185,7 +211,8 @@ static int qsem_enqueue(queue_t *q, int val)
 
     return SPMCQ_SUCCESS;
 err:
-    if (node) free(node);
+    if (node)
+        free(node);
 
     return ret;
 }
@@ -204,8 +231,10 @@ static int qsem_dequeue(queue_t *q, int *val)
         goto err;
     }
 
-    assert(q->lock);
-    lock = q->lock;
+    if ((lock = q->lock) == NULL) {
+        ret = SPMCQ_INVALID_PARAM;
+        goto err;
+    }
 
     if (sem_wait(lock->snodes) == -1) {
         ret = SPMCQ_SEMAPHORE_ERR;
@@ -237,7 +266,8 @@ static int qsem_dequeue(queue_t *q, int *val)
 #endif
 
 err:
-    if (tmp_node) free(tmp_node);
+    if (tmp_node)
+        free(tmp_node);
 
     return ret;
 }

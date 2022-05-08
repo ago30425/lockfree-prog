@@ -26,7 +26,9 @@ static int qlockfree_init(queue_t *q)
         return SPMCQ_INVALID_PARAM;
     }
 
-    assert(IS_POWER_OF_2(q->size));
+    if (!IS_POWER_OF_2(q->size)) {
+        return SPMCQ_INVALID_PARAM;
+    }
 
     return SPMCQ_SUCCESS;
 }
@@ -66,7 +68,8 @@ static int qlockfree_enqueue(queue_t *q, int val)
 
     return SPMCQ_SUCCESS;
 err:
-    if (node) free(node);
+    if (node)
+        free(node);
 
     return ret;
 }

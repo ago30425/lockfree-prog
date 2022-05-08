@@ -68,10 +68,15 @@ queue_t* spmcq_create(uint32_t size, QMETHOD method_id)
     return q;
 
 err:
-    if (ring_buf) free(ring_buf);
-    if (q)        free(q);
+    if (ring_buf)
+        free(ring_buf);
+
+    if (q)
+        free(q);
+
 #ifdef TEST
-    if (observed_items) free(observed_items);
+    if (observed_items)
+        free(observed_items);
 #endif
 
     return NULL;
@@ -82,12 +87,14 @@ void spmcq_release(queue_t *spmcq)
     if (!spmcq)
         return;
 
-    assert(spmcq->method);
+    assert(spmcq->method &&
+           spmcq->method->destroy);
 
-    if (spmcq->method->destroy)
-        spmcq->method->destroy(spmcq);
+    spmcq->method->destroy(spmcq);
 
-    if (spmcq->ring_buf) free(spmcq->ring_buf);
+    if (spmcq->ring_buf)
+        free(spmcq->ring_buf);
+
     free(spmcq);
 }
 
