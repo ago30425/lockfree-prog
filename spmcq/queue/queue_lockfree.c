@@ -14,8 +14,11 @@ static int qlockfree_enqueue(queue_t *q, int val);
 static int qlockfree_dequeue(queue_t *q, int *val);
 
 q_method_t queue_lockfree_method  = {
-    .init = qlockfree_init,
-    .destroy = qlockfree_destroy,
+     /* All necessary initialization and release
+      * are done in spmcq APIs.
+      */
+    .init = NULL,
+    .destroy = NULL,
     .enqueue = qlockfree_enqueue,
     .dequeue = qlockfree_dequeue
 };
@@ -78,6 +81,12 @@ static int qlockfree_dequeue(queue_t *q, int *val)
 {
     q_node_t *tmp_node = NULL;
     uint32_t tmp_front;
+    int ret = SPMCQ_SUCCESS;
+
+    if (!q) {
+        ret = SPMCQ_INVALID_PARAM;
+        goto err;
+    }
 
     do {
 retry:
@@ -99,8 +108,10 @@ retry:
     __atomic_add_fetch(&q->observed_items[*val], 1, __ATOMIC_RELAXED);
 #endif
 
-    free(tmp_node);
+err:
+    if (tmp_node)
+        free(tmp_node);
 
-    return SPMCQ_SUCCESS;
+    return ret;
 }
 

@@ -45,22 +45,22 @@ cmd_opts_t cmdOptTbl[] = {
 typedef struct {
     long nthread;
     long qsize;
-    long nData;
-    long testId;
+    long ndata;
+    long test_id;
 } config_t;
 
 typedef struct {
     queue_t *spmcq;
-    int nData;
+    int ndata;
 } thread_args_t;
 
 static void * producer_thread(void *args)
 {
     thread_args_t *thread_args = (thread_args_t *)args;
     queue_t *spmcq = thread_args->spmcq;
-    int nData = thread_args->nData;
+    int ndata = thread_args->ndata;
 
-    for (int i = 0; i < nData; i++) {
+    for (int i = 0; i < ndata; i++) {
         /* TODO: error handling */
         spmcq_enqueue(spmcq, i);
     }
@@ -73,7 +73,7 @@ static void * consumer_thread(void *args)
     int val;
     thread_args_t *thread_args = (thread_args_t *)args;
     queue_t *spmcq = thread_args->spmcq;
-    int max_items = thread_args->nData;
+    int max_items = thread_args->ndata;
 
     /* TODO: error handling */
     for (;;) {
@@ -141,8 +141,8 @@ static void config_set_default(config_t *cfg)
         cfg->qsize = 1024;
     }
 
-    if (cfg->nData == 0) {
-        cfg->nData = 4096;
+    if (cfg->ndata == 0) {
+        cfg->ndata = 4096;
     }
 }
 
@@ -169,12 +169,12 @@ int main(int argc, char *argv[])
             CHECK_NUM_IS_POWER_OF_2(opt, configs.qsize);
             break;
         case CMD_OPT_DATA_AMOUNT:
-            configs.nData = strtol(optarg, NULL, 10);
-            CHECK_NUM_OUT_OF_RANGE(opt, configs.nData, MIN_DATA_AMOUNT, MAX_DATA_AMOUNT);
+            configs.ndata = strtol(optarg, NULL, 10);
+            CHECK_NUM_OUT_OF_RANGE(opt, configs.ndata, MIN_DATA_AMOUNT, MAX_DATA_AMOUNT);
             break;
         case CMD_OPT_METHOD:
-            configs.testId = strtol(optarg, NULL, 10);
-            CHECK_NUM_OUT_OF_RANGE(opt, configs.testId, QMETHOD_SEM, QMETHOD_NUM - 1);
+            configs.test_id = strtol(optarg, NULL, 10);
+            CHECK_NUM_OUT_OF_RANGE(opt, configs.test_id, QMETHOD_SEM, QMETHOD_NUM - 1);
             break;
         case CMD_OPT_HELP:
             print_help_msg();
@@ -186,9 +186,9 @@ int main(int argc, char *argv[])
     }
 
     DBG_CMD_PARSING("Command options: optind: %d, nthread: %d, "
-                    "qsize: %d, nData: %d, testId: %d\n",
+                    "qsize: %d, ndata: %d, test_id: %d\n",
                     optind, (int)configs.nthread,
-                    (int)configs.qsize, (int)configs.nData, (int)configs.testId);
+                    (int)configs.qsize, (int)configs.ndata, (int)configs.test_id);
 
     if (argc - 1 >= optind) {
         ERR_HANDLE_PRINT("Too many arguments\n");
@@ -197,15 +197,15 @@ int main(int argc, char *argv[])
     config_set_default(&configs);
 
     DBG_CMD_PARSING("Configs: nthread: %d, qsize: %d, "
-                    "nData: %d, testId: %d\n",
+                    "ndata: %d, test_id: %d\n",
                     (int)configs.nthread, (int)configs.qsize,
-                    (int)configs.nData, (int)configs.testId);
+                    (int)configs.ndata, (int)configs.test_id);
 
     spmcq =
 #ifdef TEST
-        spmcq_create((uint32_t)configs.qsize, configs.testId, (int)configs.nData);
+        spmcq_create((uint32_t)configs.qsize, configs.test_id, (int)configs.ndata);
 #else
-        spmcq_create((uint32_t)configs.qsize, configs.testId);
+        spmcq_create((uint32_t)configs.qsize, configs.test_id);
 #endif
 
     if (!spmcq) {
@@ -213,7 +213,7 @@ int main(int argc, char *argv[])
     }
 
     thread_args.spmcq = spmcq;
-    thread_args.nData = (int)configs.nData;
+    thread_args.ndata = (int)configs.ndata;
 
     /* Create threads and do CPU pinning*/
     cons_tids = (pthread_t *)malloc(sizeof(pthread_t) * (configs.nthread - 1));

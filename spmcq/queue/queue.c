@@ -11,7 +11,7 @@
 #endif
 
 #ifdef TEST
-queue_t* spmcq_create(uint32_t size, QMETHOD method_id, int nData)
+queue_t* spmcq_create(uint32_t size, QMETHOD method_id, int ndata)
 #else
 queue_t* spmcq_create(uint32_t size, QMETHOD method_id)
 #endif
@@ -52,7 +52,7 @@ queue_t* spmcq_create(uint32_t size, QMETHOD method_id)
     q->mask = size - 1;
 
 #ifdef TEST
-    q->nObsvItems = nData + 1;
+    q->nObsvItems = ndata + 1;
     observed_items = (int *)calloc(1, sizeof(int) * q->nObsvItems);
     if (!observed_items)
         goto err;
@@ -87,8 +87,9 @@ void spmcq_release(queue_t *spmcq)
     if (!spmcq)
         return;
 
-    assert(spmcq->method &&
-           spmcq->method->destroy);
+    if (!spmcq->method ||
+        !spmcq->method->destroy)
+        return;
 
     spmcq->method->destroy(spmcq);
 
@@ -113,8 +114,9 @@ int spmcq_enqueue(queue_t *spmcq, int val)
     if (!spmcq)
         return SPMCQ_INVALID_PARAM;
 
-    assert(spmcq->method &&
-           spmcq->method->enqueue);
+    if (!spmcq->method ||
+        !spmcq->method->enqueue)
+        return SPMCQ_INVALID_PARAM;
 
     return spmcq->method->enqueue(spmcq, val);
 }
@@ -124,8 +126,9 @@ int spmcq_dequeue(queue_t *spmcq, int *val)
     if (!spmcq)
         return SPMCQ_INVALID_PARAM;
 
-    assert(spmcq->method &&
-           spmcq->method->dequeue);
+    if (!spmcq->method ||
+        !spmcq->method->dequeue)
+        return SPMCQ_INVALID_PARAM;
 
     return spmcq->method->dequeue(spmcq, val);
 }

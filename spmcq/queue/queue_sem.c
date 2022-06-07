@@ -22,8 +22,7 @@ q_method_t queue_sem_method  = {
     .dequeue = qsem_dequeue
 };
 
-/*
- * TODO: Debug messages for mutex and semaphore
+/* TODO: Debug messages for mutex and semaphore
  */
 #define ERR_MUTEX_INIT    0x01
 #define ERR_SEM_INIT1     0x02
@@ -35,10 +34,6 @@ static int qsem_init(queue_t *q)
     uint8_t lock_succ = 0;
 
     if (!q) {
-        return SPMCQ_INVALID_PARAM;
-    }
-
-    if (!IS_POWER_OF_2(q->size)) {
         return SPMCQ_INVALID_PARAM;
     }
 
