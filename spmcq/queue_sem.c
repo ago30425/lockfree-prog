@@ -3,12 +3,9 @@
 #include <stdint.h>
 #include <string.h>
 #include <assert.h>
-#include "queue.h"
+#include <spmcq/spmcq.h>
 #include "queue_internal.h"
 #include "queue_sem.h"
-#ifdef TEST
-#   include "test.h"
-#endif
 
 static int qsem_init(queue_t *q);
 static int qsem_destroy(queue_t *q);

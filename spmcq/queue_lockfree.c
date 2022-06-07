@@ -1,12 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
-#include "queue.h"
+#include <spmcq/spmcq.h>
 #include "queue_internal.h"
 #include "queue_lockfree.h"
-#ifdef TEST
-#   include "test.h"
-#endif
+#include "compiler.h"
 
 static int qlockfree_init(queue_t *q);
 static int qlockfree_destroy(queue_t *q);
@@ -23,7 +21,7 @@ q_method_t queue_lockfree_method  = {
     .dequeue = qlockfree_dequeue
 };
 
-static int qlockfree_init(queue_t *q)
+static ATTRIBUTE(unused) int qlockfree_init(queue_t *q)
 {
     if (!q) {
         return SPMCQ_INVALID_PARAM;
@@ -36,7 +34,7 @@ static int qlockfree_init(queue_t *q)
     return SPMCQ_SUCCESS;
 }
 
-static int qlockfree_destroy(queue_t *q)
+static ATTRIBUTE(unused) int qlockfree_destroy(queue_t *q)
 {
     /* Suppress compiler warning message. */
     if (!q)

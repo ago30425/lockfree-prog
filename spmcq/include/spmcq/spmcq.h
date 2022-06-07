@@ -1,5 +1,5 @@
-#ifndef __QUEUE_H__
-#define __QUEUE_H__
+#ifndef __SPMCQ_H__
+#define __SPMCQ_H__
 #include <limits.h>
 #include <stdint.h>
 

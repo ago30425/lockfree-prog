@@ -2,13 +2,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-#include "queue.h"
+#include <spmcq/spmcq.h>
 #include "queue_internal.h"
 #include "queue_sem.h"
 #include "queue_lockfree.h"
-#ifdef TEST
-#   include "test.h"
-#endif
 
 #ifdef TEST
 queue_t* spmcq_create(uint32_t size, QMETHOD method_id, int ndata)

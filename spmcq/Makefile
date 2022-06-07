@@ -1,9 +1,9 @@
-include $(TOP)/compile.mk
-include $(TOP)/config.mk
+include compile.mk
+include config.mk
 
 INCS = -Iinclude -Iinclude/internal
 
-TARGET = libqueue.a
+TARGET = libqueue.so
 
 .PHONY: all clean $(DEPDIR)
 
@@ -13,7 +13,7 @@ $(DEPDIR):
 	mkdir -p $@
 
 $(TARGET): $(OBJS)
-	$(AR) rcs $(TARGET) $^
+	$(CC) -shared $^ -o $@
 
 %.o: %.c
 	$(CC) $(DEPFLAGS) $(CFLAGS) $(INCS) -c $< -o $@
