@@ -15,9 +15,9 @@ dataAmountDiff = (128 * 1024)
 totalTestCnt = 20
 # Test counts for each case
 testCntPerCase = 3
+prog = "../../test/queue/queue_test"
 #*********************************
 
-prog = "../../spmcq"
 dataAmount = dataAmountStart
 dataAmountInKb = dataAmount / 1024.0
 dataFile = "data.csv"
