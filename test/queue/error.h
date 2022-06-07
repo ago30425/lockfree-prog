@@ -1,6 +1,6 @@
 #ifndef __ERROR_H__
 #define __ERROR_H__
-#include "queue.h"
+#include <spmcq/spmcq.h>
 
 #define ERR_HANDLE_EX(msg, en)	\
 	do { fprintf(stderr, "[Error] "); errno = en; perror(msg); exit(EXIT_FAILURE); } while (0);

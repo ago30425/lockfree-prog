@@ -3,9 +3,9 @@ include config.mk
 
 INCS = -Iinclude -Iinclude/internal
 
-TARGET = libqueue.so
+TARGET = libspmcq.so
 
-.PHONY: all clean $(DEPDIR)
+.PHONY: all clean
 
 all: $(DEPDIR) $(TARGET)
 

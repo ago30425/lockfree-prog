@@ -3,26 +3,27 @@ include config.mk
 
 TOP = $(shell pwd)
 
-INCS = -Iinclude -Iqueue/include
-LIBS = -lpthread queue/libqueue.a
+# libspmcq.so
+LIBSPMCQ_PATH = ../../spmcq
+LIBSPMCQ = libspmcq
+CLEAN_LIBSPMCQ = clean_libspmcq
 
-SUBDIRS = queue
-TARGET = spmcq
+INCS = -I$(LIBSPMCQ_PATH)/include
+LIBS = -lpthread $(LIBSPMCQ_PATH)/$(LIBSPMCQ).so
 
-BUILDSUBDIRS = $(SUBDIRS:%=build-%)
-CLEANSUBDIRS = $(SUBDIRS:%=clean-%)
+TARGET = queue_test
 
 export TOP
 
-.PHONY: all clean $(DEPDIR) $(BUILDSUBDIRS) $(CLEANSUBDIRS) format
+.PHONY: all clean $(LIBSPMCQ) $(CLEAN_LIBSPMCQ) format
 
-all: $(DEPDIR) $(BUILDSUBDIRS) $(TARGET)
+all: $(DEPDIR) $(LIBSPMCQ) $(TARGET)
 
 $(DEPDIR):
 	mkdir -p $@
 
-$(BUILDSUBDIRS):
-	$(MAKE) -C $(@:build-%=%)
+$(LIBSPMCQ):
+	$(MAKE) -C $(LIBSPMCQ_PATH)
 
 $(TARGET): $(OBJS)
 	$(CC) $(CFLAGS) $(LDFLAGS) $^ -o $@ $(LIBS)
@@ -30,11 +31,11 @@ $(TARGET): $(OBJS)
 %.o: %.c
 	$(CC) $(DEPFLAGS) $(CFLAGS) $(INCS)  -c $< -o $@
 
-clean: $(CLEANSUBDIRS)
+clean: $(CLEAN_LIBSPMCQ)
 	rm -f $(TARGET) $(OBJS)
 
-$(CLEANSUBDIRS):
-	$(MAKE) -C $(@:clean-%=%) clean
+$(CLEAN_LIBSPMCQ):
+	$(MAKE) -C $(LIBSPMCQ_PATH) clean
 
 # TODO: Use automatically when pre-commmit
 format:

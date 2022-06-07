@@ -8,7 +8,7 @@
 #include <errno.h>
 #include "debug.h"
 #include "error.h"
-#include "queue.h"
+#include <spmcq/spmcq.h>
 
 /****************** Command *****************/
 #define CMD_OPT_NBTHREADS    'n'
